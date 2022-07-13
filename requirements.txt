@@ -13,3 +13,4 @@ sklearn==0.0
 streamlit==1.10.0
 streamlit-aggrid==0.2.2.post4
 uvicorn==0.17.6
+yfinance==0.1.67
