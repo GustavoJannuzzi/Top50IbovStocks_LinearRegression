@@ -11,6 +11,8 @@ import requests
 from bs4 import BeautifulSoup
 import yfinance as yf
 import streamlit as st
+import cufflinks as cf
+import datetime
 
 
 # Web scraping ações do B3 do IBOV
@@ -31,14 +33,18 @@ st.title("Predição das TOP 50 ações do IBOV")
 ticker = st.selectbox('Escolha um ativo', top50_ibov)
 
 
+######################
+### LINEAR GRESSION 01
+
+
 # Stock data 
 df = yf.download(ticker, period = '5y', interval = '1d')
 df['day_prev_close'] = df['Close'].shift(-1)
 
+#limpa as colunas que eu não preciso
 df = df.drop(columns =['High', 'Low','Adj Close', 'Volume', 'Open'])
 
 # função para veririficar se o ultimo dia subiu ou caiu 
-
 def f (row):
     if row ['day_prev_close'] > row['Close']: 
         val = 1
@@ -47,7 +53,6 @@ def f (row):
     return val
 
 # Criando coluna de trend days
-
 df['trend_3_day'] = df.apply(f, axis=1)
 df = df.reset_index()
 df = df.dropna()
@@ -76,14 +81,6 @@ st.write('Root Mean Squared Error: {0:.2f}'.format(np.sqrt(mean_squared_error(y_
 
 'Explained variance score: 1 is perfect prediction'
 st.write('Variance Score: {0:.2f}'.format(r2_score(y_test, y_pred)))
-
-
-# Scatter Plot
-fig, ax= plt.subplots()
-ax.scatter(y_test, y_pred)
-plt.plot([40, 120], [40, 120], 'r--', label='perfect fit')
-st.pyplot(fig)
-st.set_option('deprecation.showPyplotGlobalUse', False)
 
 print('Root Mean Squared Error: {0:.2f}'.format(np.sqrt(mean_squared_error(y_test, X_test.day_prev_close))))
 
@@ -122,3 +119,46 @@ st.metric(label="Predição do valor de fechamento HOJE", value=today_pred, delt
 
 
 st.write('Valor de fechamento de ontem', yestday_close)
+
+
+
+
+
+
+###########################
+### STOCK INFORMATIONN ####
+
+st.write('---')
+col1,col2 = st.columns(2)
+with col1:
+    # Sidebar
+    st.subheader('Query parameters')
+    start_date = st.date_input("Start date", datetime.date(2022, 1, 1))
+    end_date = st.date_input("End date", datetime.date(2022, 1, 31))
+
+with col2: 
+    # Retrieving tickers data
+   #tickerSymbol = st.selectbox('Stock ticker', top50_ibov) # Select ticker symbol
+    tickerData = yf.Ticker(ticker) # Get ticker data
+    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date) #get the historical prices for this ticker
+    # Ticker data
+    st.header('**Ticker data**')
+    st.write(tickerDf)
+
+# Ticker information
+string_logo = '<img src=%s>' % tickerData.info['logo_url']
+st.markdown(string_logo, unsafe_allow_html=True)
+
+string_name = tickerData.info['longName']
+st.header('**%s**' % string_name)
+
+string_summary = tickerData.info['longBusinessSummary']
+st.info(string_summary)
+
+# Bollinger bands
+st.header('**Bollinger Bands**')
+qf=cf.QuantFig(tickerDf,title='First Quant Figure',legend='top',name='GS')
+qf.add_bollinger_bands()
+fig = qf.iplot(asFigure=True)
+st.plotly_chart(fig)
+
