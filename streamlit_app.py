@@ -149,10 +149,10 @@ with col2:
 string_logo = '<img src=%s>' % tickerData.info['logo_url']
 st.markdown(string_logo, unsafe_allow_html=True)
 
-string_name = tickerData.info['longName']
+string_name = ticker.info['longName']
 st.header('**%s**' % string_name)
 
-string_summary = tickerData.info['longBusinessSummary']
+string_summary = ticker.info['longBusinessSummary']
 st.info(string_summary)
 
 # Bollinger bands
