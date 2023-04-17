@@ -146,6 +146,7 @@ with col2:
     st.write(tickerDf)
 
 # Ticker information
+tickerData.info
 string_logo = '<img src=%s>' % tickerData.info['logo_url']
 st.markdown(string_logo, unsafe_allow_html=True)
 
